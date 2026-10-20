@@ -52,6 +52,33 @@ how to change them; [ROUTING.md](ROUTING.md) describes when each role is useful.
 The launcher allows two workers at once. Workers share the checkout and inherit
 the parent session's permissions, so file ownership still matters.
 
+## Permissions
+
+New installations inherit Codex's permission settings instead of forcing a
+workspace sandbox. Save a preference for this Partition Code installation:
+
+```sh
+python3 relay.py configure --permissions full
+```
+
+`full` launches Codex with filesystem and network access and no execution approval
+prompts (`--ask-for-approval never --sandbox danger-full-access`). Use it for trusted
+work. It applies to new sessions from the Mac app and CLI; an already-running
+session keeps its existing settings. In that session, `/permissions` can change
+the access level, or you can reopen Partition Code.
+
+Other choices are `inherit`, `workspace` (interactive workspace approvals), and
+`auto-review` (workspace approvals routed to Codex's automatic reviewer). Override
+one session with `run --permissions MODE`. The preference is local to this
+installation and does not change global Codex settings or Partition Writing.
+
+Workers inherit the parent's permissions. Routine implementation choices should
+proceed without questions; missing requirements or consequential design decisions
+can still need input. Account logins and host or connector requirements still apply.
+`--read-only` always starts a read-only session, even if full access is saved.
+
+[Official approval and permission settings](https://learn.chatgpt.com/docs/agent-approvals-security).
+
 ## Common commands
 
 ```sh

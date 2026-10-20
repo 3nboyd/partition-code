@@ -13,6 +13,7 @@ import tempfile
 import tomllib
 
 SOURCE = Path(__file__).resolve().parent
+PERMISSIONS = ('inherit', 'workspace', 'auto-review', 'full')
 BEGIN = '<!-- partition-code:begin -->'
 END = '<!-- partition-code:end -->'
 BLOCK = BEGIN + '\nFollow `.relay/ROUTING.md` for coding model and agent routing.\n' + END
@@ -140,30 +141,64 @@ def validate_models(pairs):
         if model not in catalog or effort not in catalog[model]:
             raise RelayError(f'Unavailable model/effort in this client: {model}/{effort}. Edit .relay/models.json or the role TOML.')
 
+def launcher_preferences():
+    path=safe(SOURCE,'.relay/launcher.json')
+    if not path.exists(): return {'permissions':'inherit'}
+    data=json.loads(path.read_text())
+    if not isinstance(data,dict) or data.get('permissions') not in PERMISSIONS:
+        raise RelayError('Invalid launcher permissions. Run configure --permissions MODE.')
+    return data
+
+def configure(permissions):
+    if permissions not in PERMISSIONS: raise RelayError('Choose a supported permissions mode.')
+    write(safe(SOURCE,'.relay/launcher.json'),json.dumps({'permissions':permissions},indent=2)+'\n')
+    return {'permissions':permissions,'scope':'Partition Code launcher only','applies':'new sessions'}
+
+def permission_policy(args):
+    mode=getattr(args,'permissions',None) or launcher_preferences()['permissions']
+    if mode not in PERMISSIONS: raise RelayError('Unsupported permissions mode.')
+    # Analysis is always a separate, explicitly read-only session, even with a
+    # saved full-access preference. Never inherit a no-sandbox setting here.
+    if args.read_only:
+        return {'mode':'read-only','approval':'never','sandbox':'read-only','auto_review':False}
+    if mode=='inherit': return {'mode':mode,'approval':None,'sandbox':None,'auto_review':False}
+    if mode=='full': return {'mode':mode,'approval':'never','sandbox':'danger-full-access','auto_review':False}
+    return {'mode':mode,'approval':'on-request','sandbox':'workspace-write','auto_review':mode=='auto-review'}
+
 def command(root,args):
     p=settings(root)[args.quality]
-    argv=['codex','--ask-for-approval','on-request','--enable','multi_agent_v2']
+    access=permission_policy(args)
+    argv=['codex','--enable','multi_agent_v2']
+    if access['approval']:argv+=['--ask-for-approval',access['approval']]
     if args.exec: argv+=['exec','--skip-git-repo-check']
     argv+=['--cd',str(root),'--model',p['model'],'-c','model_reasoning_effort='+json.dumps(p['effort']),
-           '--sandbox','read-only' if args.read_only else 'workspace-write','-c','agents.max_concurrent_threads_per_session=2']
+           '-c','agents.max_concurrent_threads_per_session=2']
+    if access['sandbox']:argv+=['--sandbox',access['sandbox']]
+    if access['auto_review']:argv+=['-c','approvals_reviewer="auto_review"']
     for f,d in roles(root):
         argv+=['-c',f'agents.{d["name"]}.description='+json.dumps(d['description']),'-c',f'agents.{d["name"]}.config_file='+json.dumps(str(f))]
     if args.search: argv+=['-c','web_search="live"']
     prompt='Follow .relay/ROUTING.md. Use the relay_* specialists only when useful and honor all repository instructions.'
+    prompt+=' Complete authorized implementation, commands and validation without asking for routine permission. Resolve ordinary technical choices yourself; ask when a material design or requirements decision needs the user. Never treat self-review as new human authorization or override host requirements.'
     if args.read_only: prompt+=' Analysis only: do not edit or perform external mutations.'
     if args.prompt: prompt+='\n\nUser request:\n'+args.prompt
-    return argv+[prompt],p
+    return argv+[prompt],{**p,'permissions':access}
 
 def main(argv=None):
     p=argparse.ArgumentParser(description=__doc__); sub=p.add_subparsers(dest='action',required=True)
+    config=sub.add_parser('configure',help='Save permissions for this Partition Code installation')
+    config.add_argument('--permissions',choices=PERMISSIONS,required=True)
     for name in ['install','uninstall','doctor','run']:
         a=sub.add_parser(name);a.add_argument('--project',default='.')
         if name=='doctor': a.add_argument('--check-models',action='store_true')
         if name=='run':
+            a.add_argument('--permissions',choices=PERMISSIONS,help='Override the saved launcher permissions for this session')
             a.add_argument('prompt',nargs='?');a.add_argument('--quality',choices=['coordinator','deep','frontier'],default='coordinator')
             for flag in ['dry-run','read-only','exec','search']: a.add_argument('--'+flag,action='store_true')
     args=p.parse_args(argv)
     try:
+        if args.action=='configure':
+            print(json.dumps(configure(args.permissions),indent=2));return 0
         root=Path(args.project).expanduser().resolve()
         if not root.is_dir(): raise RelayError('Choose an existing project directory.')
         if args.action=='install': result=install(root)
@@ -173,10 +208,10 @@ def main(argv=None):
             if not s['files']: raise RelayError('Run install first.')
             rs=roles(root); cfg=settings(root)
             if args.check_models: validate_models([(d['model'],d['model_reasoning_effort']) for _,d in rs]+[(cfg[k]['model'],cfg[k]['effort']) for k in ['coordinator','deep','frontier']])
-            result={'ok':True,'agents':len(rs),'models_checked':args.check_models}
+            result={'ok':True,'agents':len(rs),'models_checked':args.check_models,'launcher_permissions':launcher_preferences()['permissions']}
         else:
             cmd,cfg=command(root,args)
-            if args.dry_run: result={'argv':cmd,'model':cfg['model'],'effort':cfg['effort']}
+            if args.dry_run: result={'argv':cmd,'model':cfg['model'],'effort':cfg['effort'],'permissions':cfg['permissions']}
             else:
                 validate_models([(cfg['model'],cfg['effort'])]+[(d['model'],d['model_reasoning_effort']) for _,d in roles(root)])
                 return subprocess.run(cmd).returncode

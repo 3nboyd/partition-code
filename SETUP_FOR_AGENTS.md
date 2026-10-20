@@ -15,3 +15,13 @@
 Use `--read-only` for analysis-only sessions. `--exec` is a single noninteractive task.
 Do not launch publisher without human authorization. Installer and run arguments
 are ordinary argv; never interpolate user prompts into shell commands.
+
+## Permission preferences
+
+Use `python3 relay.py configure --permissions MODE` to save the human's chosen
+mode for this installation. Default is `inherit`; `full` requires the user's
+authorization for full filesystem/network access without execution approvals.
+`auto-review` uses Codex's supported automatic reviewer rather than forwarding
+eligible workspace approvals to the human. Never simulate a user approval.
+Changes apply to new CLI and Mac launcher sessions; do not interrupt an active
+session to apply them. Use `/permissions` in an existing session when needed.
