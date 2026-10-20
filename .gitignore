@@ -1,0 +1,16 @@
+.partition/private/
+.partition/state.json
+.partition/backups/
+.relay/state.json
+.relay/backups/
+__pycache__/
+*.py[cod]
+.venv/
+.env
+.env.*
+!.env.example
+.DS_Store
+
+# Entire local installation is generated; source templates live in assets/.
+/.partition/
+/.relay/

@@ -1,0 +1,41 @@
+{
+  "checked_on": "2026-10-20",
+  "coordinator": {
+    "model": "gpt-6.1-sol",
+    "effort": "low"
+  },
+  "deep": {
+    "model": "gpt-6.1-sol",
+    "effort": "high"
+  },
+  "frontier": {
+    "model": "gpt-6-astra",
+    "effort": "low"
+  },
+  "roles": {
+    "relay_explorer": {
+      "model": "gpt-6-luna",
+      "effort": "high"
+    },
+    "relay_quick": {
+      "model": "gpt-6-luna",
+      "effort": "high"
+    },
+    "relay_implementer": {
+      "model": "gpt-6.1-sol",
+      "effort": "medium"
+    },
+    "relay_validator": {
+      "model": "gpt-6-luna",
+      "effort": "high"
+    },
+    "relay_reviewer": {
+      "model": "gpt-6.1-sol",
+      "effort": "high"
+    },
+    "relay_publisher": {
+      "model": "gpt-6-luna",
+      "effort": "high"
+    }
+  }
+}
