@@ -14,3 +14,6 @@ __pycache__/
 # Entire local installation is generated; source templates live in assets/.
 /.partition/
 /.relay/
+
+# Local Mac launcher builds.
+*.app/

@@ -1,4 +1,4 @@
-# Setup contract for an AI assistant
+# Setup for AI assistants
 
 1. Read README.md and MODEL_MAP.md. Identify the user's target coding directory.
 2. Verify Python >=3.11 and `codex --version`. If sign-in is missing, instruct the

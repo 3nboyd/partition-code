@@ -1,17 +1,18 @@
 # Partition Code
 
-I made Partition Code because I don't always know which model to use for a coding
-task. It gives me one Codex coordinator that can use different models for exploring
-a repository, making changes, running checks, and reviewing code.
+Partition Code adds model-specific coding agents to Codex. A coordinator assigns
+focused work to an explorer, implementer, validator, or reviewer, then brings the
+results back into one conversation. Small fixes usually stay with the coordinator.
 
-I took inspiration from [subagents_configs](https://github.com/nsEytgXm/subagents_configs)
-and wrote my own project-scoped setup. My writing references live separately in
-[Partition Writing](https://github.com/3nboyd/partition-writing).
+The project grew out of a recurring question: which model is worth using for this
+particular task? The setup takes inspiration from
+[subagents_configs](https://github.com/nsEytgXm/subagents_configs), with its own
+routing rules and project-scoped installer. Writing references are handled separately
+by [Partition Writing](https://github.com/3nboyd/partition-writing).
 
-## Setup
+## Get started
 
-Requires Python 3.11+, Git, and a recent Codex CLI signed in with `codex login`.
-Use the installer from this cloned repository and point it at your coding project:
+Requires Python 3.11+, Git, and Codex CLI. Sign in with `codex login`, then run:
 
 ```sh
 git clone https://github.com/3nboyd/partition-code.git
@@ -21,59 +22,63 @@ python3 relay.py doctor --project /path/to/your/code --check-models
 python3 relay.py run --project /path/to/your/code
 ```
 
-I start a session in the target repository and ask for the change or analysis.
-The launcher registers the roles for that session without changing global Codex
-settings. In the desktop app, open the target repository in a fresh chat to load
-its agents. The CLI launcher applies the model and concurrency settings explicitly.
+Ask for the change, investigation, or review in the session that opens. The launcher
+registers the project agents and applies the model settings without changing global
+Codex configuration. Existing chats may need to be restarted to discover new agents.
+
+### On a Mac
+
+Run `python3 install_macos.py` to add **Partition Code** to your Applications folder.
+This requires Apple Command Line Tools (`xcode-select --install`). Open the app,
+choose a coding folder, and continue in the Terminal session it starts. The launcher
+installs the project agents first and preserves conflicting files.
+
+Keep the cloned repository in place; the launcher uses that copy.
+
+## Model map
+
+| Work | Role | Model / effort |
+| --- | --- | --- |
+| Planning and integration | Coordinator | GPT-6.1 Sol / low |
+| Repository discovery | relay_explorer | GPT-6 Luna / high |
+| Small, clear edits | relay_quick | GPT-6 Luna / high |
+| Larger features and fixes | relay_implementer | GPT-6.1 Sol / medium |
+| Independent checks | relay_validator | GPT-6 Luna / high |
+| Changes needing closer review | relay_reviewer | GPT-6.1 Sol / high |
+| Authorized commits and pushes | relay_publisher | GPT-6 Luna / high |
+
+These are starting defaults. [MODEL_MAP.md](MODEL_MAP.md) explains the choices and
+how to change them; [ROUTING.md](ROUTING.md) describes when each role is useful.
+The launcher allows two workers at once. Workers share the checkout and inherit
+the parent session's permissions, so file ownership still matters.
+
+## Common commands
 
 ```sh
 python3 relay.py run --project /path/to/code --read-only "Analyze the authentication flow"
-python3 relay.py run --project /path/to/code --quality deep "Debug this intermittent race"
+python3 relay.py run --project /path/to/code --quality deep "Investigate this intermittent failure"
 python3 relay.py run --project /path/to/code --dry-run "Explain the test failure"
 python3 relay.py run --project /path/to/code --exec "Fix the parser and run its tests"
 python3 relay.py uninstall --project /path/to/code
 ```
 
-The installer adds a bounded block to AGENTS.md and project-scoped `.relay/` and
-`.codex/agents/` files. It refuses to overwrite unrelated or modified managed files.
-It does not edit an existing `.codex/config.toml`, trust settings, or global prompts.
-Uninstall retains modified role files and removes its own instruction block.
+`--read-only` applies to the whole session. `--quality deep` increases the
+coordinator's reasoning effort; `frontier` explicitly selects Astra. Worker
+models are configured separately in their TOML files.
 
-## Routing
+The installer adds a section to AGENTS.md and files under `.relay/` and
+`.codex/agents/`. It preserves unrelated configuration and modified managed files.
+Uninstall removes its own files and retains local edits.
 
-| Work | Role | Model / effort |
-| --- | --- | --- |
-| Scope and integration | Coordinator | GPT-6.1 Sol / low |
-| Repository discovery | relay_explorer | GPT-6 Luna / high |
-| Small, clear edits | relay_quick | GPT-6 Luna / high |
-| Nontrivial implementation | relay_implementer | GPT-6.1 Sol / medium |
-| Independent checks | relay_validator | GPT-6 Luna / high |
-| Risky change review | relay_reviewer | GPT-6.1 Sol / high |
-| Authorized Git publishing | relay_publisher | GPT-6 Luna / high |
+Codex access and usage limits come from the signed-in account. This project
+currently supports Codex. [SETUP_FOR_AGENTS.md](SETUP_FOR_AGENTS.md) provides
+instructions for another assistant setting it up.
 
-I keep the model choices in [MODEL_MAP.md](MODEL_MAP.md) and the routing rules in
-[ROUTING.md](ROUTING.md). Simple work stays with the coordinator. At most two
-workers run concurrently through the launcher. Workers share the checkout and inherit
-the parent's permissions. Read-only role prose is not an independent sandbox;
-`--read-only` sets the parent filesystem sandbox. External tools have their own controls.
-
-Your signed-in plan's Codex access and limits apply. This does not grant extra model
-entitlements, API credit, ChatGPT memory, or other providers. No API key is required
-for supported ChatGPT sign-in. Main-model selection occurs at session start; role
-routing selects worker models, not a hidden mid-turn coordinator swap.
-
-## For another AI
-
-Read [SETUP_FOR_AGENTS.md](SETUP_FOR_AGENTS.md), then install and run doctor. Do not
-publish credentials, sample libraries, or user conversation history. This project
-supports Codex; it does not claim untested OpenCode provider or authentication compatibility.
-
-## Validation
+## Development
 
 ```sh
 python3 -m unittest discover -s tests -v
 python3 scripts/check_public.py
 ```
 
-CI runs on Python 3.11 and 3.13. Model catalog checks validate client configuration,
-not account entitlement or a benchmark proving one model is best for every task.
+CI runs on Python 3.11 and 3.13. Mac launcher compilation is checked on macOS.
