@@ -1,11 +1,12 @@
 # Partition Code
 
-A small, inspectable coding orchestrator for Codex. One coordinator chooses focused
-specialists with different models; you keep one conversation and one final answer.
-Inspired by the workflow in [subagents_configs](https://github.com/nsEytgXm/subagents_configs),
-with an independent implementation, conservative concurrency, and current model settings.
-The separate [Partition Writing](https://github.com/3nboyd/partition-writing) project
-handles writing samples and personal context. This repository contains no personal library.
+I made Partition Code because I don't always know which model to use for a coding
+task. It gives me one Codex coordinator that can use different models for exploring
+a repository, making changes, running checks, and reviewing code.
+
+I took inspiration from [subagents_configs](https://github.com/nsEytgXm/subagents_configs)
+and wrote my own project-scoped setup. My writing references live separately in
+[Partition Writing](https://github.com/3nboyd/partition-writing).
 
 ## Setup
 
@@ -20,11 +21,10 @@ python3 relay.py doctor --project /path/to/your/code --check-models
 python3 relay.py run --project /path/to/your/code
 ```
 
-Tell it what you want built, fixed, analyzed or reviewed. The launcher explicitly
-registers project roles for that session, including before project configuration is
-trusted. It leaves global Codex settings alone. In the desktop app, open the target
-repository and start a fresh chat; project agents also live in `.codex/agents/`.
-Use the CLI launcher when you need its explicit model and concurrency settings.
+I start a session in the target repository and ask for the change or analysis.
+The launcher registers the roles for that session without changing global Codex
+settings. In the desktop app, open the target repository in a fresh chat to load
+its agents. The CLI launcher applies the model and concurrency settings explicitly.
 
 ```sh
 python3 relay.py run --project /path/to/code --read-only "Analyze the authentication flow"
@@ -51,8 +51,8 @@ Uninstall retains modified role files and removes its own instruction block.
 | Risky change review | relay_reviewer | GPT-6.1 Sol / high |
 | Authorized Git publishing | relay_publisher | GPT-6 Luna / high |
 
-See [MODEL_MAP.md](MODEL_MAP.md) for rationale and overrides and [ROUTING.md](ROUTING.md)
-for exact delegation contracts. Simple work stays with the coordinator. At most two
+I keep the model choices in [MODEL_MAP.md](MODEL_MAP.md) and the routing rules in
+[ROUTING.md](ROUTING.md). Simple work stays with the coordinator. At most two
 workers run concurrently through the launcher. Workers share the checkout and inherit
 the parent's permissions. Read-only role prose is not an independent sandbox;
 `--read-only` sets the parent filesystem sandbox. External tools have their own controls.
