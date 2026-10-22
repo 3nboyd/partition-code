@@ -36,11 +36,14 @@ Codex configuration. Existing chats may need to be restarted to discover new age
 ### On a Mac
 
 Run `python3 install_macos.py` to add **Partition Code** to your Applications folder.
-This requires Apple Command Line Tools (`xcode-select --install`). Open the app,
-choose a coding folder, and continue in the Terminal session it starts. The launcher
-installs the project agents first and preserves conflicting files.
+This requires Apple Command Line Tools (`xcode-select --install`). Installing the
+Mac app creates a launcher; it does not choose or configure a coding project yet.
 
-Keep the cloned repository in place; the launcher uses that copy.
+Open **Partition Code**, choose a coding folder, and continue in the Terminal session
+it starts. The launcher adds the project agents to that folder before opening
+Codex. If existing files conflict, it stops and preserves them.
+
+Keep this cloned repository in place; the Mac launcher runs the code from that copy.
 
 ## Model map
 
