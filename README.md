@@ -64,23 +64,28 @@ the parent session's permissions, so file ownership still matters.
 
 ## Permissions
 
-New installations inherit Codex's permission settings instead of forcing a
-workspace sandbox. Save a preference for this Partition Code installation:
+New installations inherit Codex's permission settings. Choose the access you want
+for new sessions from this Partition Code installation:
+
+| Mode | Behavior |
+| --- | --- |
+| `inherit` | Keep Codex's existing permission settings; this is the default. |
+| `workspace` | Use a workspace sandbox with interactive execution approvals. |
+| `auto-review` | Use a workspace sandbox with eligible approvals handled by Codex's automatic reviewer. |
+| `full` | Allow filesystem and network access without execution approval prompts; use for trusted work. |
+
+Save a choice, for example:
 
 ```sh
 python3 relay.py configure --permissions full
 ```
 
-`full` launches Codex with filesystem and network access and no execution approval
-prompts (`--ask-for-approval never --sandbox danger-full-access`). Use it for trusted
-work. It applies to new sessions from the Mac app and CLI; an already-running
-session keeps its existing settings. In that session, `/permissions` can change
-the access level, or you can reopen Partition Code.
+`full` uses `--ask-for-approval never --sandbox danger-full-access`. The saved choice
+applies to new sessions from the Mac app and CLI. An already-running session keeps
+its settings; use `/permissions` there or reopen Partition Code to change them.
 
-Other choices are `inherit`, `workspace` (interactive workspace approvals), and
-`auto-review` (workspace approvals routed to Codex's automatic reviewer). Override
-one session with `run --permissions MODE`. The preference is local to this
-installation and does not change global Codex settings or Partition Writing.
+Override one session with `run --permissions MODE`. Saved preferences are local to
+this installation and do not change global Codex settings or Partition Writing.
 
 Workers inherit the parent's permissions. Routine implementation choices should
 proceed without questions; missing requirements or consequential design decisions
