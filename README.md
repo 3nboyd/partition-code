@@ -22,7 +22,14 @@ python3 relay.py doctor --project /path/to/your/code --check-models
 python3 relay.py run --project /path/to/your/code
 ```
 
-Ask for the change, investigation, or review in the session that opens. The launcher
+The commands above perform three steps:
+
+1. `install` adds the project agents and configuration to your coding folder.
+2. `doctor --check-models` checks the installation and configured model names.
+3. `run` opens a coding session for that folder.
+
+Replace `/path/to/your/code` with the folder you want to work on. Ask for the change,
+investigation, or review in the session that opens. The launcher
 registers the project agents and applies the model settings without changing global
 Codex configuration. Existing chats may need to be restarted to discover new agents.
 
