@@ -1,8 +1,8 @@
 # Partition Code
 
-Partition Code adds model-specific coding agents to Codex. A coordinator assigns
-focused work to an explorer, implementer, validator, or reviewer, then brings the
-results back into one conversation. Small fixes usually stay with the coordinator.
+Partition Code configures coding agents for Codex. One coordinator handles your
+request and can ask focused helpers to explore code, make changes, run checks, or
+review the result. Small fixes usually stay in the main conversation.
 
 The project grew out of a recurring question: which model is worth using for this
 particular task? The setup takes inspiration from
