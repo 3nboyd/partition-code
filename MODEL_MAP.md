@@ -22,14 +22,21 @@ Avoid running six agents for a one-line fix.
 
 The coordinator defaults to Sol / low. `--quality deep` selects Sol / high.
 `--quality frontier` explicitly selects Astra / low for exceptionally difficult work.
-Astra is never automatically launched by a role. Edit `.relay/models.json` in the
-TARGET repository to change session policies. Edit that target's
-`.codex/agents/relay_*.toml` for worker settings. Both model and effort must be supported.
-Editing the `roles` summary in models.json does not rewrite role TOMLs; TOMLs are
-the authoritative worker settings. Source defaults for future installs live in
-`models.json` and `agents/` in this repository.
+Astra is never automatically launched by a role.
 
-Keep customized files: the installer intentionally refuses to overwrite local edits.
+To customize an installed coding project:
+
+1. Edit that project's `.relay/models.json` to change coordinator session policies.
+2. Edit its `.codex/agents/relay_*.toml` files to change worker models and effort.
+   These TOML files control workers; changing the `roles` summary in `models.json`
+   does not rewrite them.
+3. Run `python3 relay.py doctor --project /path/to/your/code --check-models` from
+   this installer repository. Both the model and effort must be supported.
+
+To change defaults for future installations, edit `models.json` and `agents/` in
+this installer repository instead. Existing customized project files are preserved;
+the installer refuses to overwrite local edits.
+
 Run doctor after changes. A catalog listing does not prove account access. Update
 retired model names rather than silently substituting one.
 
