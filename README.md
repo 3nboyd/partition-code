@@ -10,6 +10,52 @@ particular task? The setup takes inspiration from
 routing rules and project-scoped installer. Writing references are handled separately
 by [Partition Writing](https://github.com/3nboyd/partition-writing).
 
+## How the orchestrator works
+
+You describe the outcome. The coordinator keeps track of the whole task, chooses
+focused help when useful, and brings the work back together into one answer.
+
+```mermaid
+flowchart TD
+    Request["Your coding task"] --> Coordinator["Coordinator<br/>Plan and choose useful help"]
+
+    subgraph Helpers["Focused helpers: at most 2 at once"]
+        Explore["Explorer<br/>Find relevant code"]
+        Change["Quick / Implementer<br/>Edit or build"]
+        Check["Validator / Reviewer<br/>Test and review"]
+    end
+
+    Coordinator -->|As needed| Explore
+    Coordinator -->|As needed| Change
+    Coordinator -->|As needed| Check
+    Coordinator -->|Small tasks: handle directly| Integrate
+    Explore --> Integrate
+    Change --> Integrate
+    Check --> Integrate
+    Integrate["Coordinator<br/>Combine results and resolve issues"]
+    Integrate --> Answer["Your result<br/>Changes, findings, and verification"]
+    Integrate -.->|Only with your authorization| Publish["Publisher<br/>Commit and push"]
+    Publish --> Answer
+
+    classDef coordinator fill:#29204a,stroke:#9b87f5,color:#fff
+    classDef helper fill:#152d3b,stroke:#60b6d8,color:#fff
+    classDef outcome fill:#173b30,stroke:#6dc9a2,color:#fff
+    class Coordinator,Integrate coordinator
+    class Explore,Change,Check,Publish helper
+    class Answer outcome
+```
+
+For example, a bug fix might use an **Explorer** to locate the cause, an
+**Implementer** to fix it, and a **Validator** to check the result. The coordinator
+waits for dependent work and integrates the findings; it does not launch every role
+for every request. A small, obvious fix can stay entirely with the coordinator.
+
+All workers share the project checkout and inherit the session's permissions.
+The coordinator assigns nonoverlapping file ownership when work runs in parallel.
+Partition Code installs these roles and routing rules into your project; Codex runs
+the session. See [ROUTING.md](ROUTING.md) for the delegation rules and
+[MODEL_MAP.md](MODEL_MAP.md) for the configured models.
+
 ## Get started
 
 Requires Python 3.11+, Git, and Codex CLI. Sign in with `codex login`, then run:
