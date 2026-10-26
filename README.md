@@ -16,25 +16,25 @@ You describe the outcome. The coordinator keeps track of the whole task, chooses
 focused help when useful, and brings the work back together into one answer.
 
 ```mermaid
-flowchart TD
-    Request["Your coding task"] --> Coordinator["Coordinator<br/>Plan and choose useful help"]
+flowchart LR
+    Request["Your coding task"] --> Coordinator["Coordinator<br/>gpt-6.1-sol · low<br/>Scope, plan, and route"]
 
-    subgraph Helpers["Focused helpers: at most 2 at once"]
-        Explore["Explorer<br/>Find relevant code"]
-        Change["Quick / Implementer<br/>Edit or build"]
-        Check["Validator / Reviewer<br/>Test and review"]
+    subgraph Helpers["Optional specialists · max 2 concurrent workers"]
+        Explore["Explorer<br/>gpt-6-luna · high"]
+        Change["Quick<br/>gpt-6-luna · high<br/><br/>Implementer<br/>gpt-6.1-sol<br/>medium effort"]
+        Check["Validator<br/>gpt-6-luna · high<br/><br/>Reviewer<br/>gpt-6.1-sol · high"]
     end
 
-    Coordinator -->|As needed| Explore
-    Coordinator -->|As needed| Change
-    Coordinator -->|As needed| Check
-    Coordinator -->|Small tasks: handle directly| Integrate
+    Coordinator --> Explore
+    Coordinator --> Change
+    Coordinator --> Check
+    Coordinator -->|Small tasks: direct| Integrate
     Explore --> Integrate
     Change --> Integrate
     Check --> Integrate
-    Integrate["Coordinator<br/>Combine results and resolve issues"]
-    Integrate --> Answer["Your result<br/>Changes, findings, and verification"]
-    Integrate -.->|Only with your authorization| Publish["Publisher<br/>Commit and push"]
+    Integrate["Coordinator<br/>gpt-6.1-sol · low<br/>Integrate and resolve findings"]
+    Integrate --> Answer["Result + verification"]
+    Integrate -.->|Authorized publishing| Publish["Publisher<br/>gpt-6-luna · high<br/>Commit and push"]
     Publish --> Answer
 
     classDef coordinator fill:#29204a,stroke:#9b87f5,color:#fff
@@ -44,6 +44,11 @@ flowchart TD
     class Explore,Change,Check,Publish helper
     class Answer outcome
 ```
+
+**Labels show model ID and reasoning effort from the repository defaults.**
+`--quality deep` changes the coordinator to `gpt-6.1-sol / high`;
+`--quality frontier` explicitly selects `gpt-6-astra / low`. Worker models stay
+configured separately in `agents/*.toml`.
 
 For example, a bug fix might use an **Explorer** to locate the cause, an
 **Implementer** to fix it, and a **Validator** to check the result. The coordinator
